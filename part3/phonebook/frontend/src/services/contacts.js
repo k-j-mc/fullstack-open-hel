@@ -1,5 +1,5 @@
 import axios from "axios";
-const baseUrl = "https://phonebook-backend-test-qvtl.onrender.com/api/contacts";
+const baseUrl = "/api/contacts";
 
 const getAll = () => {
 	const request = axios.get(baseUrl);
