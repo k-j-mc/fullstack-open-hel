@@ -18,10 +18,18 @@ const App = () => {
 	const [variant, setVariant] = useState(null);
 
 	const getAllContacts = () => {
-		contactService.getAll().then((initialNotes) => {
-			setContacts(initialNotes);
-			setContactList(initialNotes);
-		});
+		contactService
+			.getAll()
+			.then((initialNotes) => {
+				setContacts(initialNotes);
+				setContactList(initialNotes);
+			})
+			.catch((error) => {
+				handleNotification({
+					message: "Unable to load contacts",
+					type: "error",
+				});
+			});
 	};
 
 	useEffect(() => {
@@ -46,12 +54,22 @@ const App = () => {
 			(obj) => obj.name.toLowerCase() === name
 		);
 
-		if (!existing && newName && newNumber) {
-			contactService.create(contactObject).then(getAllContacts());
-			handleNotification({
-				message: `Added ${contactObject.name}`,
-				type: "success",
-			});
+		if (!existing) {
+			contactService
+				.create(contactObject)
+				.then(() => {
+					getAllContacts();
+					handleNotification({
+						message: `Added ${contactObject.name}`,
+						type: "success",
+					});
+				})
+				.catch((error) => {
+					handleNotification({
+						message: error.response.data.error,
+						type: "error",
+					});
+				});
 		} else if (existing) {
 			updateContact(existing, contactObject);
 		} else {
