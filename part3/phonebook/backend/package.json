@@ -8,7 +8,20 @@
 		"dev": "nodemon index.js",
 		"test": "echo \"Error: no test specified\" && exit 1",
 		"build:ui": "rm -rf build && cd ../frontend && npm run build && cp -r build ../backend",
-		"deploy:full": "npm run build:ui && git add . && git commit -m uibuild && git push"
+		"deploy:full": "npm run build:ui && git add . && git commit -m uibuild && git push",
+		"lint": "eslint './src/**/*.{js,jsx}'",
+		"lint-fix": "eslint './src/**/*.{js,jsx}' --fix"
+	},
+	"eslintConfig": {
+		"extends": [
+			"react-app",
+			"react-app/jest",
+			"plugin:prettier/recommended"
+		]
+	},
+	"prettier": {
+		"useTabs": true,
+		"tabWidth": 4
 	},
 	"author": "",
 	"license": "ISC",
@@ -20,6 +33,9 @@
 		"morgan": "^1.10.0"
 	},
 	"devDependencies": {
-		"nodemon": "^2.0.22"
+		"nodemon": "^2.0.22",
+		"eslint-config-prettier": "^8.8.0",
+		"eslint-plugin-prettier": "^4.2.1",
+		"prettier": "^2.8.7"
 	}
 }
