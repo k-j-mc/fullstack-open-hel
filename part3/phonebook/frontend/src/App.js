@@ -65,6 +65,7 @@ const App = () => {
 					});
 				})
 				.catch((error) => {
+					console.log(error);
 					handleNotification({
 						message: error.response.data.error,
 						type: "error",

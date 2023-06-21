@@ -53,18 +53,6 @@ app.get("/api/contacts", (request, response, next) => {
 app.post("/api/contacts", async (request, response, next) => {
 	const { name, number } = request.body;
 
-	if (!name) {
-		return response.status(400).json({
-			error: "name missing",
-		});
-	}
-
-	if (!number) {
-		return response.status(400).json({
-			error: "number missing",
-		});
-	}
-
 	exists = await Contact.findOne({ name });
 
 	if (!exists) {

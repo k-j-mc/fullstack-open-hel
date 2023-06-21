@@ -17,8 +17,9 @@ const contactSchema = new mongoose.Schema({
 	id: Number,
 	name: {
 		type: String,
-		minLength: [3, "Not long enough"],
-		required: true,
+		minLength: [3, "Name not long enough"],
+		required: [true, "Contact name required"],
+		trim: true,
 	},
 	number: {
 		type: String,
@@ -29,7 +30,8 @@ const contactSchema = new mongoose.Schema({
 
 			message: (props) => `${props.value} is not a valid phone number!`,
 		},
-		required: [true, "User phone number required"],
+		required: [true, "Contact number required"],
+		trim: true,
 	},
 	date: Date,
 });
