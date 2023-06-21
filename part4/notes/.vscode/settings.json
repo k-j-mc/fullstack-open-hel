@@ -1,0 +1,10 @@
+{
+	"editor.tabSize": 4,
+	"prettier.tabWidth": 4,
+	"prettier.useTabs": true,
+	"eslint.validate": ["html", "javascript", "javascriptreact"],
+	"editor.codeActionsOnSave": {
+		"source.fixAll.eslint": true
+	},
+	"vetur.format.options.tabSize": 4,
+}
