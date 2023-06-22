@@ -1,4 +1,6 @@
 const listHelper = require("../utils/list_helper");
+const testData = require("./testData");
+const noBlog = [];
 
 test("dummy returns one", () => {
 	const blogs = [];
@@ -8,22 +10,9 @@ test("dummy returns one", () => {
 });
 
 describe("total likes", () => {
-	const listWithOneBlog = [
-		{
-			_id: "5a422aa71b54a676234d17f8",
-			title: "Go To Statement Considered Harmful",
-			author: "Edsger W. Dijkstra",
-			url: "http://www.u.arizona.edu/~rubinson/copyright_violations/Go_To_Considered_Harmful.html",
-			likes: 51,
-			__v: 0,
-		},
-	];
-
-	const noBlog = [];
-
 	test("when list has only one blog, equals the likes of that", () => {
-		const result = listHelper.totalLikes(listWithOneBlog);
-		expect(result).toBe(51);
+		const result = listHelper.totalLikes(testData);
+		expect(result).toBe(36);
 	});
 
 	test("when list has no blogs", () => {
@@ -33,27 +22,22 @@ describe("total likes", () => {
 });
 
 describe("most liked blog from list", () => {
-	const favouriteBlog = [
-		{
-			_id: "5a422aa71b54a676234d17f8",
-			title: "Canonical string reduction",
-			author: "Edsger W. Dijkstra",
-			url: "http://www.u.arizona.edu/~rubinson/copyright_violations/Go_To_Considered_Harmful.html",
-			likes: 121,
-			__v: 0,
-		},
-		{
-			_id: "5a422aa71b54a676234d17f8",
-			title: "Canonical string reduction",
-			author: "Edsger W. Dijkstra",
-			url: "http://www.u.arizona.edu/~rubinson/copyright_violations/Go_To_Considered_Harmful.html",
-			likes: 12,
-			__v: 0,
-		},
-	];
-
 	test("test most liked blog", () => {
-		const result = listHelper.mostLiked(favouriteBlog);
-		expect(result).toEqual(favouriteBlog[0]);
+		const result = listHelper.favoriteBlog(testData);
+		expect(result).toEqual(testData[2]);
+	});
+});
+
+describe("most common blogger from list", () => {
+	test("test most liked blog", () => {
+		const result = listHelper.mostBlogs(testData);
+		expect(result).toEqual({ author: "Robert C. Martin", blogs: 3 });
+	});
+});
+
+describe("most liked blogger", () => {
+	test("test most liked blogger", () => {
+		const result = listHelper.mostLikes(testData);
+		expect(result).toEqual({ author: "Edsger W. Dijkstra", likes: 17 });
 	});
 });
