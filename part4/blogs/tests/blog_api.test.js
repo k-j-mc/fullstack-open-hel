@@ -17,6 +17,33 @@ beforeEach(async () => {
 	await Promise.all(promiseArray);
 });
 
+const getToken = async () => {
+	const userData = {
+		username: "root",
+		password: "sekret",
+	};
+
+	const response = await api
+		.post("/api/login")
+		.send(userData)
+		.expect(200)
+		.expect("Content-Type", /application\/json/);
+
+	return response.body.token;
+};
+
+const getUserId = async () => {
+	const response = await helper.usersInDb();
+
+	return response[0].id;
+};
+
+describe("log in test", () => {
+	test("receive token", async () => {
+		getToken();
+	});
+});
+
 describe("receive and add blog data", () => {
 	test("blogs are returned as json", async () => {
 		await api
@@ -39,18 +66,21 @@ describe("receive and add blog data", () => {
 	});
 
 	test("a valid blog can be added", async () => {
-		const usersAtStart = await helper.usersInDb();
+		const userId = await getUserId();
+
+		const token = await getToken();
 
 		const newBlog = {
 			title: "Blog 3 about mice",
 			author: "Mickey Rat",
 			url: "https://mouse-blog.fi/mouse-blog",
 			likes: 13,
-			userId: usersAtStart[0].id,
+			userId: userId,
 		};
 
 		await api
 			.post("/api/blogs")
+			.set("Authorization", `Bearer ${token}`)
 			.send(newBlog)
 			.expect(201)
 			.expect("Content-Type", /application\/json/);
@@ -65,15 +95,22 @@ describe("receive and add blog data", () => {
 
 describe("Rejecting invalid data", () => {
 	test("blog without title is not added", async () => {
-		const usersAtStart = await helper.usersInDb();
+		const userId = await getUserId();
+
+		const token = await getToken();
+
 		const newBlog = {
 			author: "Mickey Rat",
 			url: "https://mouse-blog.fi/mouse-blog",
 			likes: 13,
-			userId: usersAtStart[0].id,
+			userId: userId,
 		};
 
-		await api.post("/api/blogs").send(newBlog).expect(400);
+		await api
+			.post("/api/blogs")
+			.set("Authorization", `Bearer ${token}`)
+			.send(newBlog)
+			.expect(400);
 
 		const blogsAtEnd = await helper.blogsInDb();
 		expect(blogsAtEnd).toHaveLength(helper.initialBlogs.length);
@@ -82,12 +119,14 @@ describe("Rejecting invalid data", () => {
 
 describe("data validations", () => {
 	test("blog with missing title or url receive default values", async () => {
-		const usersAtStart = await helper.usersInDb();
+		const userId = await getUserId();
+
+		const token = await getToken();
 
 		const newBlog = {
 			author: "Dudley Ronald",
 			likes: 1,
-			userId: usersAtStart[0].id,
+			userId: userId,
 		};
 
 		if (!newBlog.title) {
@@ -100,6 +139,7 @@ describe("data validations", () => {
 
 		await api
 			.post("/api/blogs")
+			.set("Authorization", `Bearer ${token}`)
 			.send(newBlog)
 			.expect(201)
 			.expect("Content-Type", /application\/json/);
@@ -114,13 +154,15 @@ describe("data validations", () => {
 	});
 
 	test("blog with missing likes value defaults to 0", async () => {
-		const usersAtStart = await helper.usersInDb();
+		const userId = await getUserId();
+
+		const token = await getToken();
 
 		const newBlog = {
 			title: "Blog 3 about mice",
 			author: "Mickey Rat",
 			url: "https://mouse-blog.fi/mouse-blog",
-			userId: usersAtStart[0].id,
+			userId: userId,
 		};
 
 		if (!newBlog.likes) {
@@ -129,6 +171,7 @@ describe("data validations", () => {
 
 		await api
 			.post("/api/blogs")
+			.set("Authorization", `Bearer ${token}`)
 			.send(newBlog)
 			.expect(201)
 			.expect("Content-Type", /application\/json/);

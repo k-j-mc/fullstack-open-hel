@@ -8,6 +8,27 @@ const api = supertest(app);
 const User = require("../models/user");
 const Note = require("../models/note");
 
+const getToken = async () => {
+	const userData = {
+		username: "root",
+		password: "sekret",
+	};
+
+	const response = await api
+		.post("/api/login")
+		.send(userData)
+		.expect(200)
+		.expect("Content-Type", /application\/json/);
+
+	return response.body.token;
+};
+
+const getUserId = async () => {
+	const response = await helper.usersInDb();
+
+	return response[0].id;
+};
+
 describe("when there is initially some notes saved", () => {
 	beforeEach(async () => {
 		await Note.deleteMany({});
@@ -63,16 +84,19 @@ describe("when there is initially some notes saved", () => {
 
 	describe("addition of a new note", () => {
 		test("succeeds with valid data", async () => {
-			const usersAtStart = await helper.usersInDb();
+			const userId = await getUserId();
+
+			const token = await getToken();
 
 			const newNote = {
 				content: "async/await simplifies making async calls",
 				important: true,
-				userId: usersAtStart[0].id,
+				user: userId,
 			};
 
 			await api
 				.post("/api/notes")
+				.set("Authorization", `Bearer ${token}`)
 				.send(newNote)
 				.expect(201)
 				.expect("Content-Type", /application\/json/);
@@ -87,11 +111,11 @@ describe("when there is initially some notes saved", () => {
 		});
 
 		test("fails with status code 400 if data invalid", async () => {
-			const usersAtStart = await helper.usersInDb();
+			const userId = await getUserId();
 
 			const newNote = {
 				important: true,
-				userId: usersAtStart[0].id,
+				userId: userId,
 			};
 
 			await api.post("/api/notes").send(newNote).expect(400);
