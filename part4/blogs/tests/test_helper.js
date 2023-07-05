@@ -1,6 +1,18 @@
 const Blog = require("../models/blog");
 const User = require("../models/user");
 
+const initialUser = {
+	username: "testUser1",
+	name: "testName",
+	password: "testPassword",
+};
+
+const testUser = {
+	username: "testUser2",
+	name: "testName2",
+	password: "testPassword2",
+};
+
 const initialBlogs = [
 	{
 		title: "Blog 1 about dogs",
@@ -15,6 +27,20 @@ const initialBlogs = [
 		likes: 3,
 	},
 ];
+
+const newBlog = {
+	title: "Blog 3 about mice",
+	author: "Mickey Rat",
+	url: "https://mouse-blog.fi/mouse-blog",
+	likes: 13,
+};
+
+const editBlog = {
+	title: "Blog 4 about something",
+	author: "Test Author",
+	url: "https://test-blog.com/test-blog",
+	likes: 13,
+};
 
 const nonExistingId = async () => {
 	const blog = new Blog({ content: "willremovethissoon" });
@@ -35,7 +61,11 @@ const usersInDb = async () => {
 };
 
 module.exports = {
+	initialUser,
+	testUser,
 	initialBlogs,
+	editBlog,
+	newBlog,
 	nonExistingId,
 	blogsInDb,
 	usersInDb,

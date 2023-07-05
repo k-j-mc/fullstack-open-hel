@@ -10,10 +10,25 @@ const userSchema = new mongoose.Schema({
 	},
 	name: String,
 	passwordHash: String,
+
 	blogs: [
 		{
-			type: mongoose.Schema.Types.ObjectId,
-			ref: "Blog",
+			id: {
+				type: mongoose.Schema.Types.ObjectId,
+				ref: "Blog",
+			},
+			title: {
+				type: mongoose.Schema.Types.String,
+				ref: "Blog",
+			},
+			author: {
+				type: mongoose.Schema.Types.String,
+				ref: "Blog",
+			},
+			url: {
+				type: mongoose.Schema.Types.String,
+				ref: "Blog",
+			},
 		},
 	],
 });

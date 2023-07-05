@@ -8,6 +8,15 @@ usersRouter.get("/", async (request, response) => {
 		author: 1,
 		url: 1,
 		likes: 1,
+		blogs: [
+			{
+				id: 1,
+				author: 1,
+				title: 1,
+				likes: 1,
+				url: 1,
+			},
+		],
 	});
 	response.json(users);
 });
@@ -15,18 +24,28 @@ usersRouter.get("/", async (request, response) => {
 usersRouter.post("/", async (request, response) => {
 	const { username, name, password } = request.body;
 
-	const saltRounds = 10;
-	const passwordHash = await bcrypt.hash(password, saltRounds);
+	if (!password) {
+		response.status(400).json({ error: "Password must be submitted" });
+	}
 
-	const user = new User({
-		username,
-		name,
-		passwordHash,
-	});
+	if (password.length < 3) {
+		response
+			.status(400)
+			.json({ error: "Password must be more than 3 characters" });
+	} else {
+		const saltRounds = 10;
+		const passwordHash = await bcrypt.hash(password, saltRounds);
 
-	const savedUser = await user.save();
+		const user = new User({
+			username,
+			name,
+			passwordHash,
+		});
 
-	response.status(201).json(savedUser);
+		const savedUser = await user.save();
+
+		response.status(201).json(savedUser);
+	}
 });
 
 module.exports = usersRouter;

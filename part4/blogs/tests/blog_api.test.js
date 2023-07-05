@@ -15,12 +15,23 @@ beforeEach(async () => {
 	const blogObjects = helper.initialBlogs.map((blog) => new Blog(blog));
 	const promiseArray = blogObjects.map((blog) => blog.save());
 	await Promise.all(promiseArray);
+
+	await User.deleteMany({ username: { $ne: process.env.USER_NAME } });
+
+	const passwordHash = await bcrypt.hash(helper.initialUser.password, 10);
+	const user = new User({
+		username: helper.initialUser.username,
+		name: helper.initialUser.name,
+		passwordHash,
+	});
+
+	await user.save();
 });
 
 const getToken = async () => {
 	const userData = {
-		username: "root",
-		password: "sekret",
+		username: process.env.USER_NAME,
+		password: process.env.PASSWORD,
 	};
 
 	const response = await api
@@ -32,19 +43,7 @@ const getToken = async () => {
 	return response.body.token;
 };
 
-const getUserId = async () => {
-	const response = await helper.usersInDb();
-
-	return response[0].id;
-};
-
-describe("log in test", () => {
-	test("receive token", async () => {
-		getToken();
-	});
-});
-
-describe("receive and add blog data", () => {
+describe("test and validate user endpoints", () => {
 	test("blogs are returned as json", async () => {
 		await api
 			.get("/api/blogs")
@@ -66,22 +65,12 @@ describe("receive and add blog data", () => {
 	});
 
 	test("a valid blog can be added", async () => {
-		const userId = await getUserId();
-
 		const token = await getToken();
-
-		const newBlog = {
-			title: "Blog 3 about mice",
-			author: "Mickey Rat",
-			url: "https://mouse-blog.fi/mouse-blog",
-			likes: 13,
-			userId: userId,
-		};
 
 		await api
 			.post("/api/blogs")
 			.set("Authorization", `Bearer ${token}`)
-			.send(newBlog)
+			.send(helper.newBlog)
 			.expect(201)
 			.expect("Content-Type", /application\/json/);
 
@@ -91,20 +80,20 @@ describe("receive and add blog data", () => {
 		const titles = blogsAtEnd.map((obj) => obj.title);
 		expect(titles).toContain("Blog 3 about mice");
 	});
-});
 
-describe("Rejecting invalid data", () => {
+	test("invalid blog can not be added 401", async () => {
+		await api
+			.post("/api/blogs")
+			// .set("Authorization", `Bearer N0T-a-V@l1D-t0kEN`)
+			.send(helper.newBlog)
+			.expect(401)
+			.expect("Content-Type", /application\/json/);
+	});
+
 	test("blog without title is not added", async () => {
-		const userId = await getUserId();
-
 		const token = await getToken();
 
-		const newBlog = {
-			author: "Mickey Rat",
-			url: "https://mouse-blog.fi/mouse-blog",
-			likes: 13,
-			userId: userId,
-		};
+		const newBlog = { ...helper.newBlog, title: null };
 
 		await api
 			.post("/api/blogs")
@@ -115,18 +104,13 @@ describe("Rejecting invalid data", () => {
 		const blogsAtEnd = await helper.blogsInDb();
 		expect(blogsAtEnd).toHaveLength(helper.initialBlogs.length);
 	});
-});
 
-describe("data validations", () => {
 	test("blog with missing title or url receive default values", async () => {
-		const userId = await getUserId();
-
 		const token = await getToken();
 
 		const newBlog = {
 			author: "Dudley Ronald",
 			likes: 1,
-			userId: userId,
 		};
 
 		if (!newBlog.title) {
@@ -154,16 +138,9 @@ describe("data validations", () => {
 	});
 
 	test("blog with missing likes value defaults to 0", async () => {
-		const userId = await getUserId();
-
 		const token = await getToken();
 
-		const newBlog = {
-			title: "Blog 3 about mice",
-			author: "Mickey Rat",
-			url: "https://mouse-blog.fi/mouse-blog",
-			userId: userId,
-		};
+		const newBlog = { ...helper.newBlog, likes: null };
 
 		if (!newBlog.likes) {
 			newBlog.likes = 0;
@@ -192,59 +169,65 @@ describe("data validations", () => {
 		expect(responseKeys).toContain("id");
 		expect(response.body[0].id).toBeDefined();
 	});
-});
 
-describe("deletion of a blog", () => {
-	test("succeeds with status code 204 if id is valid", async () => {
+	test("editing succeeds with status code 204 if id is valid", async () => {
+		const token = await getToken();
+
+		await api
+			.post("/api/blogs")
+			.set("Authorization", `Bearer ${token}`)
+			.send(helper.editBlog)
+			.expect(201)
+			.expect("Content-Type", /application\/json/);
+
+		const blogs = await helper.blogsInDb();
+		const blogToEdit = blogs[2];
+
+		const editedBlog = { ...blogToEdit, likes: 14 };
+
+		await api
+			.put(`/api/blogs/${editedBlog.id}`)
+			.set("Authorization", `Bearer ${token}`)
+			.expect(204);
+
+		expect(blogs).toHaveLength(helper.initialBlogs.length + 1);
+		expect(editedBlog.likes).toBe(14);
+	});
+
+	test("deletion succeeds with status code 204 if id is valid", async () => {
+		const token = await getToken();
+
+		await api
+			.post("/api/blogs")
+			.set("Authorization", `Bearer ${token}`)
+			.send(helper.editBlog)
+			.expect(201)
+			.expect("Content-Type", /application\/json/);
+
 		const blogsAtStart = await helper.blogsInDb();
-		const blogToDelete = blogsAtStart[0];
+		const blogToDelete = blogsAtStart[2];
 
-		await api.delete(`/api/blogs/${blogToDelete.id}`).expect(204);
+		await api
+			.delete(`/api/blogs/${blogToDelete.id}`)
+			.set("Authorization", `Bearer ${token}`)
+			.expect(204);
 
 		const blogsAtEnd = await helper.blogsInDb();
 
-		expect(blogsAtEnd).toHaveLength(helper.initialBlogs.length - 1);
+		expect(blogsAtEnd).toHaveLength(helper.initialBlogs.length);
 
 		const contents = blogsAtEnd.map((obj) => obj.id);
 
 		expect(contents).not.toContain(blogToDelete.id);
-	});
-});
-
-describe("editing a blog post's likes", () => {
-	test("succeeds with status code 204 if id is valid", async () => {
-		const blogs = await helper.blogsInDb();
-		const blogToEdit = blogs[0];
-
-		const editedBlog = { ...blogToEdit, likes: 14 };
-
-		await api.put(`/api/blogs/${editedBlog.id}`).expect(204);
-
-		expect(blogs).toHaveLength(helper.initialBlogs.length);
-		expect(editedBlog.likes).toBe(14);
-	});
-});
-
-describe("when there is initially one user at db", () => {
-	beforeEach(async () => {
-		await User.deleteMany({});
-
-		const passwordHash = await bcrypt.hash("sekret", 10);
-		const user = new User({
-			username: "root",
-			passwordHash,
-		});
-
-		await user.save();
 	});
 
 	test("creation succeeds with a fresh username", async () => {
 		const usersAtStart = await helper.usersInDb();
 
 		const newUser = {
-			username: "mluukkai",
-			name: "Matti Luukkainen",
-			password: "salainen",
+			username: "test-user",
+			name: "Mrs Test",
+			password: process.env.PASSWORD,
 		};
 
 		await api
@@ -264,18 +247,97 @@ describe("when there is initially one user at db", () => {
 		const usersAtStart = await helper.usersInDb();
 
 		const newUser = {
-			username: "root",
+			username: process.env.USER_NAME,
 			name: "Superuser",
-			password: "salainen",
+			password: process.env.PASSWORD,
 		};
 
-		const result = await api
+		const response = await api
 			.post("/api/users")
 			.send(newUser)
 			.expect(400)
 			.expect("Content-Type", /application\/json/);
 
-		expect(result.body.error).toContain("expected `username` to be unique");
+		expect(response.body.error).toContain(
+			"expected `username` to be unique"
+		);
+
+		const usersAtEnd = await helper.usersInDb();
+		expect(usersAtEnd).toHaveLength(usersAtStart.length);
+	});
+
+	test("user cannot be created with empty or missing username", async () => {
+		const usersAtStart = await helper.usersInDb();
+
+		const newUser = {
+			name: "Some new user withoout a username",
+			password: process.env.PASSWORD,
+		};
+
+		const response = await api
+			.post("/api/users")
+			.send(newUser)
+			.expect(400)
+			.expect("Content-Type", /application\/json/);
+
+		expect(response.body.error).toContain("User validation failed");
+
+		const usersAtEnd = await helper.usersInDb();
+		expect(usersAtEnd).toHaveLength(usersAtStart.length);
+	});
+
+	test("user cannot be created with short username", async () => {
+		const usersAtStart = await helper.usersInDb();
+
+		const newUser = {
+			username: "ew",
+			name: "Some new user with a short username",
+			password: process.env.PASSWORD,
+		};
+
+		const response = await api
+			.post("/api/users")
+			.send(newUser)
+			.expect(400)
+			.expect("Content-Type", /application\/json/);
+
+		expect(response.body.error).toContain("User validation failed");
+
+		const usersAtEnd = await helper.usersInDb();
+		expect(usersAtEnd).toHaveLength(usersAtStart.length);
+	});
+
+	test("user cannot be created with empty or missing password", async () => {
+		const usersAtStart = await helper.usersInDb();
+
+		const newUser = { ...helper.testUser, password: "" };
+
+		const response = await api
+			.post("/api/users")
+			.send(newUser)
+			.expect(400)
+			.expect("Content-Type", /application\/json/);
+
+		expect(response.body.error).toContain("Password must be submitted");
+
+		const usersAtEnd = await helper.usersInDb();
+		expect(usersAtEnd).toHaveLength(usersAtStart.length);
+	});
+
+	test("user cannot be created with short password", async () => {
+		const usersAtStart = await helper.usersInDb();
+
+		const newUser = { ...helper.testUser, password: "12" };
+
+		const response = await api
+			.post("/api/users")
+			.send(newUser)
+			.expect(400)
+			.expect("Content-Type", /application\/json/);
+
+		expect(response.body.error).toContain(
+			"Password must be more than 3 characters"
+		);
 
 		const usersAtEnd = await helper.usersInDb();
 		expect(usersAtEnd).toHaveLength(usersAtStart.length);
