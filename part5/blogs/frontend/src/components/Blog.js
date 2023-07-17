@@ -38,7 +38,7 @@ const Blog = forwardRef((props, refs) => {
 				<p>Url: {blog.url}</p>
 				<div>
 					Likes: {blog.likes}{" "}
-					<button onClick={() => likeBlog(blog)}>like</button>
+					<button onClick={() => likeBlog(blog)}>Like</button>
 				</div>
 				<p>Uploaded by: {blog.user.name}</p>
 				{blog.user.id === user.id && (
