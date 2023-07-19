@@ -28,21 +28,32 @@ const Blog = forwardRef((props, refs) => {
 	};
 
 	return (
-		<div className="blog">
+		<div id="blog" className="blog">
 			<div className="blogTitle">
 				{blog.title} ({blog.author})
-				<button onClick={toggleVisibility}>{visibleText}</button>
+				<button id="blog-view" onClick={toggleVisibility}>
+					{visibleText}
+				</button>
 			</div>
 
-			<div style={showWhenVisible}>
+			<div id="blog-details" style={showWhenVisible}>
 				<p>Url: {blog.url}</p>
 				<div>
 					Likes: {blog.likes}{" "}
-					<button onClick={() => likeBlog(blog)}>Like</button>
+					<button
+						id="blog-like"
+						className="blog-like"
+						onClick={() => likeBlog(blog)}
+					>
+						Like
+					</button>
 				</div>
 				<p>Uploaded by: {blog.user.name}</p>
 				{blog.user.id === user.id && (
-					<button onClick={() => handleDeleteBlog(blog)}>
+					<button
+						id="blog-delete"
+						onClick={() => handleDeleteBlog(blog)}
+					>
 						Remove
 					</button>
 				)}

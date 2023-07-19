@@ -29,6 +29,7 @@ const BlogForm = ({ createBlog }) => {
 			<div>
 				title:{" "}
 				<input
+					id="blog-title"
 					type="text"
 					name="newBlogTitle"
 					value={title}
@@ -38,6 +39,7 @@ const BlogForm = ({ createBlog }) => {
 			<div>
 				author:{" "}
 				<input
+					id="blog-author"
 					type="text"
 					name="newBlogAuthor"
 					value={author}
@@ -47,6 +49,7 @@ const BlogForm = ({ createBlog }) => {
 			<div>
 				Url:{" "}
 				<input
+					id="blog-url"
 					type="text"
 					name="newBlogUrl"
 					value={url}
@@ -56,6 +59,7 @@ const BlogForm = ({ createBlog }) => {
 			<div>
 				likes:{" "}
 				<input
+					id="blog-likes"
 					type="number"
 					name="newBlogLikes"
 					value={likes}
@@ -63,7 +67,9 @@ const BlogForm = ({ createBlog }) => {
 				/>
 			</div>
 			<div>
-				<button type="submit">Save blog</button>
+				<button id="blog-save" type="submit">
+					Save blog
+				</button>
 			</div>
 		</form>
 	);
