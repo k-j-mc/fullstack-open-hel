@@ -1,5 +1,9 @@
 import { useDispatch, useSelector } from "react-redux";
-import { vote } from "../reducers/anecdoteReducer";
+import { vote } from "../reducers/anecdoteSlice";
+import {
+	addNotification,
+	removeNotification,
+} from "../reducers/notificationSlice";
 
 const Anecdote = ({ anecdote, handleClick }) => {
 	return (
@@ -12,11 +16,26 @@ const Anecdote = ({ anecdote, handleClick }) => {
 
 const AnecdoteList = () => {
 	const dispatch = useDispatch();
-	const initialAnecdotes = useSelector((state) => state);
+	const anecdotes = useSelector((state) => {
+		const anecdoteSort = [...state.anecdotes].sort((a, b) =>
+			a.votes > b.votes ? -1 : 1
+		);
 
-	const anecdotes = initialAnecdotes.sort((a, b) =>
-		a.votes > b.votes ? -1 : 1
-	);
+		if (state.filter === "") {
+			return anecdoteSort;
+		} else {
+			const ancedoteFilter = anecdoteSort.filter((obj) =>
+				obj.content.toLowerCase().includes(state.filter.toLowerCase())
+			);
+
+			return ancedoteFilter;
+		}
+	});
+
+	const handleVote = (event) => {
+		dispatch(vote(event.id));
+		dispatch(addNotification("Liked: " + event.content));
+	};
 
 	return (
 		<ul>
@@ -24,7 +43,7 @@ const AnecdoteList = () => {
 				<Anecdote
 					key={anecdote.id}
 					anecdote={anecdote}
-					handleClick={() => dispatch(vote(anecdote.id))}
+					handleClick={() => handleVote(anecdote)}
 				/>
 			))}
 		</ul>
