@@ -1,7 +1,8 @@
 import { configureStore } from "@reduxjs/toolkit";
-import anecdoteReducer from "./anecdoteSlice";
-import filterReducer from "./filterSlice";
-import notificationReducer from "./notificationSlice";
+
+import anecdoteReducer from "./anecdoteReducer";
+import filterReducer from "./filterReducer";
+import notificationReducer from "./notificationReducer";
 
 export default configureStore({
 	reducer: {

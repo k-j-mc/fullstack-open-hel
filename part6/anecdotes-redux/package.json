@@ -4,6 +4,7 @@
 	"private": true,
 	"dependencies": {
 		"@reduxjs/toolkit": "^1.9.5",
+		"axios": "^1.4.0",
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0",
 		"react-redux": "^8.1.1",
@@ -17,7 +18,8 @@
 		"test": "react-scripts test",
 		"eject": "react-scripts eject",
 		"lint": "eslint './src/**/*.{js,jsx}'",
-		"lint-fix": "eslint './src/**/*.{js,jsx}' --fix"
+		"lint-fix": "eslint './src/**/*.{js,jsx}' --fix",
+		"server": "json-server -p3001 --watch db.json"
 	},
 	"eslintConfig": {
 		"extends": [
@@ -49,6 +51,7 @@
 		"deep-freeze": "^0.0.1",
 		"eslint-config-prettier": "^8.8.0",
 		"eslint-plugin-prettier": "^4.2.1",
+		"json-server": "^0.17.3",
 		"prettier": "^2.8.8"
 	}
 }
